@@ -10,4 +10,9 @@
 ./funcs.h
 patches.map
 build/
+downloads/
+binaries/
+test_env/
 .vscode/settings.json
+__pycache__/**
+*.pyc
