@@ -100,7 +100,6 @@ RECOMP_HOOK("Play_CompressI8ToI5") void on_Play_CompressI8ToI5(void* srcI8, void
         REPY_FN_EXEC_CACHE(pictobox_save,
             "import picto_export\n"
             "picto_save.pictobox_to_directory(pictobox_photo, mod_folder_path)\n"
-            "print('got it')\n"
         );
 
         // Release pictobox photo Python object
