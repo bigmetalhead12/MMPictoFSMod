@@ -25,9 +25,16 @@ To locate the directory of the saved photos in your filesystem:
 All photos are saved in this directory.
 
 # Toggleable Features
-This mod gives you control over how to save the pictobox's photo. In the configuration option of the mod, you can select one of two options:
+This mod gives you control over how to save the pictobox's photo.
+
+For save options, you have two options:
 * **Automatic** - Any photo taken with the pictobox, even if it is not saved in the game, is exported into the filesystem directory.
 * **Selective** - Only photos that are saved in the game are exported into the filesystem directory.
+
+For photo options, you have three options:
+* **Original** - The photo is saved in grayscale with the pictobox resolution (160 x 112)
+* **Color** - The photo is saved in color with the N64 resolution (320 x 240)
+* **Both** - Both types of photos are saved
 
 # Mod Template
 This mod was created using [Wiseguy's MMRecompModTemplate](https://github.com/Zelda64Recomp/MMRecompModTemplate).
