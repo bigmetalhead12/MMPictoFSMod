@@ -85,3 +85,21 @@ When "Selective" is enabled, only photos saved in-game will be saved in the file
 type = "Enum"
 options = [ "Automatic", "Selective" ]
 default = "Automatic"
+
+[[manifest.config_options]]
+id = "auto_save_type"
+name = "Automatic Save Type"
+description = """
+Toggle to change how the pictobox's photo is saved (Original or Colored).
+
+When "Original" is enabled, photos are saved as their original grayscale/low-res version as seen in game.
+
+When "Color" is enabled, photos are saved in color at the N64's original resolution.
+
+When "Both" is enabled, photos are saved both in their original form and in the higher resolution colored form.
+
+This option only works when the "Save Mode" is set to "Automatic", otherwise all pictobox photos will be saved as their original grayscale version.
+"""
+type = "Enum"
+options = [ "Original", "Color", "Both" ]
+default = "Original"

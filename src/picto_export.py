@@ -30,9 +30,7 @@ def pictobox_to_directory(pictobox_photo, save_directory):
     )
 
     # Prepare directory to save photo as PNG file
-    base_dir = Path(save_directory.decode("utf-8")).parent
-    mod_folder = base_dir / "mod_data"
-    photo_dir = mod_folder / "MM_PictoPhotos"
+    photo_dir = Path(save_directory.decode("utf-8")).parent.joinpath("mod_data", "MM_PictoPhotos").resolve()
     photo_dir.mkdir(parents=True, exist_ok=True)
 
     # Prepare PNG file name
@@ -42,3 +40,42 @@ def pictobox_to_directory(pictobox_photo, save_directory):
     # Write photo data into PNG file
     with open(output_path, "wb") as f:
         writer.write(f, rows)
+
+N64_SCREEN_WIDTH    = 320
+N64_SCREEN_HEIGHT   = 240
+
+def prerender_to_directory(pictobox_photo, save_directory):
+    # Organize pictobox photo data into rows based on N64_SCREEN_WIDTH
+    rows = itertools.batched(pictobox_photo, N64_SCREEN_WIDTH * 2) # hack fix to account for 16 bit data rather than 8 bit
+    rgb_rows = []
+
+    # Convert each row from RGBA16 to RGB
+    for row in rows:
+        new_row = []
+        for i in range(0, len(row), 2): # hack fix to account for 16 bit data rather than 8 bit
+            pixel = row[i] << 8 | row[i+1]
+            red = ((((pixel) >> 11) & 0x1F) * 255 + 15) // 31
+            green = ((((pixel) >> 6) & 0x1F) * 255 + 15) // 31
+            blue = ((((pixel) >> 1) & 0x1F) * 255 + 15) // 31
+            new_row.extend([red, green, blue])
+        rgb_rows.append(new_row)
+
+    # Set PNG writer
+    writer = png.Writer(
+        width=N64_SCREEN_WIDTH,
+        height=N64_SCREEN_HEIGHT,
+        bitdepth=8,
+        greyscale=False,
+    )
+
+    # Prepare directory to save photo as PNG file
+    photo_dir = Path(save_directory.decode("utf-8")).parent.joinpath("mod_data", "MM_PictoPhotos").resolve()
+    photo_dir.mkdir(parents=True, exist_ok=True)
+
+    # Prepare PNG file name
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    output_path = photo_dir / f"picto_photo_rgb_{timestamp}.png"
+
+    # Write photo data into PNG file
+    with open(output_path, "wb") as f:
+        writer.write(f, rgb_rows)
