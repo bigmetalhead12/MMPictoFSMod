@@ -47,6 +47,8 @@ unsigned long str_byte_size(unsigned char* str) {
 // Save Photo based on toggled option in mod's config
 REPY_ADD_NRM_TO_MAIN_INTERPRETER;
 
+// For colored photos
+u16 colorPhotoBuffer[SCREEN_WIDTH * SCREEN_HEIGHT];
 PreRender* pictoPrerender;
 
 // Store the PreRender to be used in a Play_TakePictoPhoto return hook
@@ -69,7 +71,8 @@ RECOMP_HOOK_RETURN("Play_TakePictoPhoto") void return_Play_TakePictoPhoto() {
         REPY_Handle folder_path_handle = REPY_MemcpyToBytes(mod_folder_path, size, false);
         REPY_FN_SET("mod_folder_path", folder_path_handle);
 
-        if (recomp_get_config_u32("auto_save_type") == 0 || recomp_get_config_u32("auto_save_type") == 2) { // Original / Both
+        // If the Color Option is set to "Original" or "Both"
+        if (recomp_get_config_u32("save_type") == 0 || recomp_get_config_u32("save_type") == 2) {
             // Copy pictobox photo data into Python object
             REPY_Handle photo_handle = REPY_MemcpyToBytes(gHiBuffer.pictoPhotoI8, PICTO_PHOTO_SIZE, false);
             REPY_FN_SET("pictobox_photo", photo_handle);
@@ -84,7 +87,8 @@ RECOMP_HOOK_RETURN("Play_TakePictoPhoto") void return_Play_TakePictoPhoto() {
             REPY_Release(photo_handle);
         }
 
-        if (recomp_get_config_u32("auto_save_type") == 1 || recomp_get_config_u32("auto_save_type") == 2) { // Color / Both
+        // If the Color Option is set to "Color" or "Both"
+        if (recomp_get_config_u32("save_type") == 1 || recomp_get_config_u32("save_type") == 2) {
             // Copy prerender data into Python object
             REPY_Handle photo_handle = REPY_MemcpyToBytes(pictoPrerender->fbufSave, SCREEN_WIDTH * SCREEN_HEIGHT * 2, false); // x2 as the image is 16 bit rather than 8 bit
             REPY_FN_SET("pictobox_photo", photo_handle);
@@ -100,6 +104,14 @@ RECOMP_HOOK_RETURN("Play_TakePictoPhoto") void return_Play_TakePictoPhoto() {
         }
 
         REPY_FN_CLEANUP;
+    }
+
+    // Run this code when "save mode" is set to "selective" (1)
+    else {
+        // Save the prerender data into a global variable
+        for (s32 i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; i++) {
+            colorPhotoBuffer[i] = pictoPrerender->fbufSave[i];
+        }
     }
 }
 
@@ -117,18 +129,37 @@ RECOMP_HOOK("Play_CompressI8ToI5") void on_Play_CompressI8ToI5(void* srcI8, void
         REPY_Handle folder_path_handle = REPY_MemcpyToBytes(mod_folder_path, size_of_string, false);
         REPY_FN_SET("mod_folder_path", folder_path_handle);
 
-        // Copy pictobox photo data into Python object
-        REPY_Handle photo_handle = REPY_MemcpyToBytes(srcI8, PICTO_PHOTO_SIZE, false);
-        REPY_FN_SET("pictobox_photo", photo_handle);
+        // If the Color Option is set to "Original" or "Both"
+        if (recomp_get_config_u32("save_type") == 0 || recomp_get_config_u32("save_type") == 2) {
+            // Copy pictobox photo data into Python object
+            REPY_Handle photo_handle = REPY_MemcpyToBytes(srcI8, PICTO_PHOTO_SIZE, false);
+            REPY_FN_SET("pictobox_photo", photo_handle);
 
-        //Python code here
-        REPY_FN_EXEC_CACHE(pictobox_save,
-            "import picto_export\n"
-            "picto_export.pictobox_to_directory(pictobox_photo, mod_folder_path)\n"
-        );
+            //Python code here
+            REPY_FN_EXEC_CACHE(pictobox_save,
+                "import picto_export\n"
+                "picto_export.pictobox_to_directory(pictobox_photo, mod_folder_path)\n"
+            );
 
-        // Release pictobox photo Python object
-        REPY_Release(photo_handle);
+            // Release pictobox photo Python object
+            REPY_Release(photo_handle);
+        }
+
+        // If the Color Option is set to "Color" or "Both"
+        if (recomp_get_config_u32("save_type") == 1 || recomp_get_config_u32("save_type") == 2) { 
+            // Copy prerender data into Python object
+            REPY_Handle photo_handle = REPY_MemcpyToBytes(colorPhotoBuffer, SCREEN_WIDTH * SCREEN_HEIGHT * 2, false); // x2 as the image is 16 bit rather than 8 bit
+            REPY_FN_SET("pictobox_photo", photo_handle);
+
+            //Python code here
+            REPY_FN_EXEC_CACHE(pictobox_save,
+                "import picto_export\n"
+                "picto_export.prerender_to_directory(pictobox_photo, mod_folder_path)\n"
+            );
+
+            // Release pictobox photo Python object
+            REPY_Release(photo_handle);
+        }
 
         REPY_FN_CLEANUP;
     }

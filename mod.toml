@@ -18,6 +18,12 @@ description =  """
 Save pictobox photo as a PNG file to local filesystem directory.
 
 Choose how to save your pictobox photo through the configuration option.
+
+To find your saved photo, follow the directions:
+1. In MM Recomp's Mod menu, click 'Open Mods Folder'
+2. Go to the parent directory
+3. Go to the 'mod_data' directory
+4. Go to the 'MM_PictoPhotos' directory
 """
 
 # A short description that will show up in this mod's entry in the mod list. This should be human readable and kept short
@@ -87,8 +93,8 @@ options = [ "Automatic", "Selective" ]
 default = "Automatic"
 
 [[manifest.config_options]]
-id = "auto_save_type"
-name = "Automatic Save Type"
+id = "save_type"
+name = "Photo Save Type"
 description = """
 Toggle to change how the pictobox's photo is saved (Original or Colored).
 
@@ -97,8 +103,6 @@ When "Original" is enabled, photos are saved as their original grayscale/low-res
 When "Color" is enabled, photos are saved in color at the N64's original resolution.
 
 When "Both" is enabled, photos are saved both in their original form and in the higher resolution colored form.
-
-This option only works when the "Save Mode" is set to "Automatic", otherwise all pictobox photos will be saved as their original grayscale version.
 """
 type = "Enum"
 options = [ "Original", "Color", "Both" ]
