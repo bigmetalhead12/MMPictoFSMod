@@ -47,9 +47,17 @@ unsigned long str_byte_size(unsigned char* str) {
 // Save Photo based on toggled option in mod's config
 REPY_ADD_NRM_TO_MAIN_INTERPRETER;
 
+PreRender* pictoPrerender;
+
+// Store the PreRender to be used in a Play_TakePictoPhoto return hook
+RECOMP_HOOK("Play_TakePictoPhoto") void on_Play_TakePictoPhoto(PreRender* prerender) {
+    pictoPrerender = prerender;
+    // note: the prerender can be saved here for an unsmoothed image
+}
+
 
 // Automatic - Export any photo as PNG to local directory regardless of it being saved or not in-game
-RECOMP_HOOK_RETURN("Play_TakePictoPhoto") void return_Play_TakePictoPhoto(PreRender* prerender) {
+RECOMP_HOOK_RETURN("Play_TakePictoPhoto") void return_Play_TakePictoPhoto() {    
     // Run this code when "save mode" is set to "automatic" (0)
     if (!recomp_get_config_u32("save_mode")) {
         // Get the path to the mod folder
@@ -61,18 +69,35 @@ RECOMP_HOOK_RETURN("Play_TakePictoPhoto") void return_Play_TakePictoPhoto(PreRen
         REPY_Handle folder_path_handle = REPY_MemcpyToBytes(mod_folder_path, size, false);
         REPY_FN_SET("mod_folder_path", folder_path_handle);
 
-        // Copy pictobox photo data into Python object
-        REPY_Handle photo_handle = REPY_MemcpyToBytes(gHiBuffer.pictoPhotoI8, PICTO_PHOTO_SIZE, false);
-        REPY_FN_SET("pictobox_photo", photo_handle);
+        if (recomp_get_config_u32("auto_save_type") == 0 || recomp_get_config_u32("auto_save_type") == 2) { // Original / Both
+            // Copy pictobox photo data into Python object
+            REPY_Handle photo_handle = REPY_MemcpyToBytes(gHiBuffer.pictoPhotoI8, PICTO_PHOTO_SIZE, false);
+            REPY_FN_SET("pictobox_photo", photo_handle);
 
-        //Python code here
-        REPY_FN_EXEC_CACHE(pictobox_save,
-            "import picto_export\n"
-            "picto_export.pictobox_to_directory(pictobox_photo, mod_folder_path)\n"
-        );
+            //Python code here
+            REPY_FN_EXEC_CACHE(pictobox_save,
+                "import picto_export\n"
+                "picto_export.pictobox_to_directory(pictobox_photo, mod_folder_path)\n"
+            );
 
-        // Release pictobox photo Python object
-        REPY_Release(photo_handle);
+            // Release pictobox photo Python object
+            REPY_Release(photo_handle);
+        }
+
+        if (recomp_get_config_u32("auto_save_type") == 1 || recomp_get_config_u32("auto_save_type") == 2) { // Color / Both
+            // Copy prerender data into Python object
+            REPY_Handle photo_handle = REPY_MemcpyToBytes(pictoPrerender->fbufSave, SCREEN_WIDTH * SCREEN_HEIGHT * 2, false); // x2 as the image is 16 bit rather than 8 bit
+            REPY_FN_SET("pictobox_photo", photo_handle);
+
+            //Python code here
+            REPY_FN_EXEC_CACHE(pictobox_save,
+                "import picto_export\n"
+                "picto_export.prerender_to_directory(pictobox_photo, mod_folder_path)\n"
+            );
+
+            // Release pictobox photo Python object
+            REPY_Release(photo_handle);
+        }
 
         REPY_FN_CLEANUP;
     }
