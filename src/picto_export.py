@@ -1,6 +1,6 @@
 """
 
-Author: Bigmetalhead12
+Author: Bigmetalhead12, ThatHypedPerson
 
 2026
 
