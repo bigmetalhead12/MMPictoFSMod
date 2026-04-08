@@ -34,16 +34,15 @@ typedef enum {
     /* 3 */ PICTO_BOX_STATE_PHOTO
 } PictoBoxState;
 
+// sPictoState is a global variable in the game code that indicates the pictobox state
 extern s16 sPictoState;
-extern s16 sPictoPhotoBeingTaken;
 
 // For displaying colored photos in-game
-u16 inGameColorPhotoBuffer[PICTO_PHOTO_SIZE];
-bool inGameColorPhotoReady = false;     // flag that indicates if inGameColorPhotoBuffer is filled
-s16 savedPictoState;    // mod code's temp variable for sPictoState copy
+u16 inGameColorPhotoBuffer[PICTO_PHOTO_SIZE];   // Buffer that loads RGBA16 data from prerender frame
+bool inGameColorPhotoReady = false;             // flag that indicates if inGameColorPhotoBuffer is filled
+s16 savedPictoState;                            // mod code's temp variable for sPictoState copy
 
-
-// From 'buffers.h'
+// Game's buffer containing the pictobox photo's original I8 format
 typedef union {
     u16 framebufferHiRes[HIRES_BUFFER_HEIGHT][HIRES_BUFFER_WIDTH] ALIGNED(64);
     struct {
@@ -55,18 +54,16 @@ typedef union {
 
 extern BufferHigh gHiBuffer;
 
-
-// REPY
-REPY_ADD_NRM_TO_MAIN_INTERPRETER;
-
-// For saving colored photos
-u16 colorPhotoBuffer[SCREEN_WIDTH * SCREEN_HEIGHT];
-PreRender* pictoPrerender;
+// For saving colored photos as PNG
+u16 colorPhotoBuffer[SCREEN_WIDTH * SCREEN_HEIGHT]; // RGBA16 data from prerender frame with N64 resolution
+PreRender* pictoPrerender;                          // Prerender frame which contains RGBA16 frame data
 
 
 /*======================
 Play_TakePictoPhoto
 ======================*/
+// REPY
+REPY_ADD_NRM_TO_MAIN_INTERPRETER;
 
 // Store the PreRender to be used in a Play_TakePictoPhoto return hook
 RECOMP_HOOK("Play_TakePictoPhoto") void on_Play_TakePictoPhoto(PreRender* prerender) {
@@ -77,6 +74,7 @@ RECOMP_HOOK("Play_TakePictoPhoto") void on_Play_TakePictoPhoto(PreRender* preren
 
 // Function that captures game frame into photo
 RECOMP_HOOK_RETURN("Play_TakePictoPhoto") void return_Play_TakePictoPhoto() {   
+    recomp_printf("file no: %d\n", gSaveContext.fileNum);
     // For displaying colored photo, save the prerender data into a global variable
     if (recomp_get_config_u32("display_mode") == 1) {
         preRender_to_buffer(pictoPrerender, inGameColorPhotoBuffer, &inGameColorPhotoReady);
@@ -84,7 +82,7 @@ RECOMP_HOOK_RETURN("Play_TakePictoPhoto") void return_Play_TakePictoPhoto() {
     
     // Run this code when "save mode" is set to "automatic" (0)
     if (recomp_get_config_u32("save_mode") == 0) {
-        export_photo(gHiBuffer.pictoPhotoI8, pictoPrerender->fbufSave);
+        export_photo_to_png(gHiBuffer.pictoPhotoI8, pictoPrerender->fbufSave);
     }
 
     // Run this code when "save mode" is set to "selective" (1)
@@ -123,7 +121,7 @@ Interface_Draw
 // Run before "Interface_Draw" draws pictobox photo's "Keep this picture?" prompt
 RECOMP_HOOK("Interface_Draw") void on_Interface_Draw(PlayState* play) {
     // Exit this function if inGameColorPhotoBuffer is not filled or if photo is not taken yet
-    if (!inGameColorPhotoReady || sPictoState < PICTO_BOX_STATE_SETUP_PHOTO) {
+    if (inGameColorPhotoReady == 0 || sPictoState < PICTO_BOX_STATE_SETUP_PHOTO) {
         return;
     }
     // If inGameColorPhotoBuffer is filled, draw "Keep this picture?" and colored photo to game
@@ -156,6 +154,6 @@ RECOMP_HOOK("Play_CompressI8ToI5") void on_Play_CompressI8ToI5(void* srcI8, void
     // Run this code when "save mode" is set to "selective" (1)
     if (recomp_get_config_u32("save_mode")) {
         // Export pictobox photo as PNG before I8 photo gets compressed
-        export_photo(srcI8, colorPhotoBuffer);
+        export_photo_to_png(srcI8, colorPhotoBuffer);
     }
 }

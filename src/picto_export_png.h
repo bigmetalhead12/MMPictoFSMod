@@ -43,4 +43,4 @@ Export photo as PNG
  * @param grayImgData I8-formatted pictobox photo
  * @param colorImgData u16-formatted RGBA16 prerender buffer img
  */
-void export_photo(void* grayImgData, void* colorImgData);
+void export_photo_to_png(void* grayImgData, void* colorImgData);

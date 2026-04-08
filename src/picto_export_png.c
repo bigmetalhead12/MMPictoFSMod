@@ -29,7 +29,7 @@ unsigned long str_byte_size(unsigned char* str) {
 Export photo as PNG
 ======================*/
 
-void export_photo(void* grayImgData, void* colorImgData) {
+void export_photo_to_png(void* grayImgData, void* colorImgData) {
     // Get the path to the mod folder
     unsigned char* mod_folder_path = recomp_get_mod_folder_path();
     unsigned long size_of_string = str_byte_size(mod_folder_path);
