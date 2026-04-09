@@ -1,6 +1,6 @@
 """
 
-Author: Bigmetalhead12
+Author: Bigmetalhead12, ThatHypedPerson
 
 2026
 
@@ -14,11 +14,18 @@ import itertools
 from pathlib import Path
 from datetime import datetime
 
-# Macros
+
+# Macros for pictobox photo
 PICTO_PHOTO_WIDTH   = 160
 PICTO_PHOTO_HEIGHT  = 112
 
 def pictobox_to_directory(pictobox_photo, save_directory):
+    """Export a grayscale pictobox photo as a PNG into the indicated filesystem directory
+
+    Args:
+        pictobox_photo (py_object): The I8 pictobox photo
+        save_directory (py_object): Filesystem directory location
+    """
     # Organize pictobox photo data into rows based on PICTO_PHOTO_WIDTH
     rows = itertools.batched(pictobox_photo, PICTO_PHOTO_WIDTH)
 
@@ -41,10 +48,18 @@ def pictobox_to_directory(pictobox_photo, save_directory):
     with open(output_path, "wb") as f:
         writer.write(f, rows)
 
+
+# Macros for N64 screen resolution
 N64_SCREEN_WIDTH    = 320
 N64_SCREEN_HEIGHT   = 240
 
 def prerender_to_directory(pictobox_photo, save_directory):
+    """Export an RGB16 prerender as a PNG into the indicated filesystem directory
+
+    Args:
+        pictobox_photo (py_object): The RGB prerender data from taking pictobox photo
+        save_directory (py_object): Filesystem directory location
+    """
     # Organize pictobox photo data into rows based on N64_SCREEN_WIDTH
     rows = itertools.batched(pictobox_photo, N64_SCREEN_WIDTH * 2) # hack fix to account for 16 bit data rather than 8 bit
     rgb_rows = []
