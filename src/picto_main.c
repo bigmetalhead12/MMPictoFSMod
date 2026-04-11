@@ -81,12 +81,12 @@ RECOMP_HOOK_RETURN("Play_TakePictoPhoto") void return_Play_TakePictoPhoto() {
     }
     
     // Run this code when "save mode" is set to "automatic" (0)
-    if (recomp_get_config_u32("save_mode") == 0) {
+    if (recomp_get_config_u32("export_mode") == 0) {
         export_photo_to_png(gHiBuffer.pictoPhotoI8, pictoPrerender->fbufSave);
     }
 
     // Run this code when "save mode" is set to "selective" (1)
-    else if (recomp_get_config_u32("save_mode") == 1) {
+    else if (recomp_get_config_u32("export_mode") == 1) {
         // Save the prerender data into a global variable
         for (s32 i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; i++) {
             colorPhotoBuffer[i] = pictoPrerender->fbufSave[i];
@@ -170,7 +170,7 @@ Play_CompressI8ToI5
 // Compresses I8 photo image to I5 after deciding to save pictobox photo in game
 RECOMP_HOOK("Play_CompressI8ToI5") void on_Play_CompressI8ToI5(void* srcI8, void* destI5, size_t size) {
     // Run this code when "save mode" is set to "selective" (1)
-    if (recomp_get_config_u32("save_mode")) {
+    if (recomp_get_config_u32("export_mode")) {
         // Export pictobox photo as PNG before I8 photo gets compressed
         export_photo_to_png(srcI8, colorPhotoBuffer);
     }

@@ -92,30 +92,30 @@ options = [ "Original", "Color" ]
 default = "Original"
 
 [[manifest.config_options]]
-id = "save_mode"
-name = "Save Mode"
+id = "export_mode"
+name = "Export Mode"
 description = """
 Toggle to change when to save pictobox's photo (Automatic or Selective).
 
-When "Automatic" is enabled, any photo taken, whether it is saved or not in-game, will be saved in the filesystem directory.
+When "Automatic" is enabled, any photo taken, whether it is saved or not in-game, will be exported to the filesystem directory.
 
-When "Selective" is enabled, only photos saved in-game will be saved in the filesystem directory.
+When "Selective" is enabled, only photos saved in-game will be exported to the filesystem directory.
 """
 type = "Enum"
 options = [ "Automatic", "Selective" ]
 default = "Automatic"
 
 [[manifest.config_options]]
-id = "save_type"
+id = "export_type"
 name = "Photo Save Type"
 description = """
-Toggle to change how the pictobox's photo is saved (Original or Color).
+Toggle to change how the pictobox's photo is exported (Original or Color).
 
-When "Original" is enabled, photos are saved as their original grayscale/low-res version as seen in game.
+When "Original" is enabled, photos are exported as their original grayscale/low-res version as seen in game.
 
-When "Color" is enabled, photos are saved in color at the N64's original resolution.
+When "Color" is enabled, photos are exported in color at the N64's original resolution.
 
-When "Both" is enabled, photos are saved both in their original form and in the higher resolution colored form.
+When "Both" is enabled, photos are exported both in their original form and in the higher resolution colored form.
 """
 type = "Enum"
 options = [ "Original", "Color", "Both" ]
