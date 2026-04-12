@@ -103,8 +103,6 @@ RECOMP_HOOK_RETURN("Interface_UpdateButtonsPart1") void return_Interface_UpdateB
         if (viewColorPhotoBeforeSave == 1 && sPictoState == PICTO_BOX_STATE_OFF) {
             viewColorPhotoBeforeSave = false;
             viewColorPhotoAfterSave = true;
-
-            loadsave_set_color_img(gSaveContext.fileNum, inGameColorPhotoBuffer, sizeof(inGameColorPhotoBuffer));
         }
 
         // Viewing saved photo
@@ -112,16 +110,11 @@ RECOMP_HOOK_RETURN("Interface_UpdateButtonsPart1") void return_Interface_UpdateB
         if (viewColorPhotoAfterSave == 1 && sPictoState == PICTO_BOX_STATE_LENS) {
             viewColorPhotoBeforeSave = false;
             viewColorPhotoAfterSave = false;
-
-            loadsave_get_color_img(gSaveContext.fileNum, inGameColorPhotoBuffer, sizeof(inGameColorPhotoBuffer));
-            
         }
         // Player decides to keep the photo
         if (viewColorPhotoAfterSave == 1 && sPictoState == PICTO_BOX_STATE_OFF) {
             viewColorPhotoBeforeSave = false;
             viewColorPhotoAfterSave = true;
-            
-            loadsave_get_color_img(gSaveContext.fileNum, inGameColorPhotoBuffer, sizeof(inGameColorPhotoBuffer));
         }
     }
 }

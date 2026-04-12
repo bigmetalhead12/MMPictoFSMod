@@ -19,6 +19,3 @@
 	Load/Save handling for modified images.
 
 ***********************************************************************/
-
-bool loadsave_get_color_img(u32 saveslot, u16* data, size_t size);
-void loadsave_set_color_img(u32 saveslot, u16* data, size_t size);

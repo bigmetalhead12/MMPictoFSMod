@@ -92,24 +92,37 @@ static void _update_savefile_location() {
 
 
 RECOMP_CALLBACK("*", recomp_on_load_save) void on_recomp_on_load_save() {
-    REPY_PushInterpreter(REPY_MAIN_INTERPRETER);
+    REPY_FN_SETUP;
     _update_savefile_location();
     
-    REPY_CallAttrCStr(sPictoLoadSaveController, "on_game_load", REPY_CreateTuple_SUH(1, REPY_CreateS32_SUH(gSaveContext.fileNum)), REPY_NO_OBJECT);
-    if (loadsave_get_color_img(gSaveContext.fileNum, inGameColorPhotoBuffer, sizeof(inGameColorPhotoBuffer))) {
-        viewColorPhotoAfterSave = true;
-    }
 
-    
-    // recomp_printf("on_recomp_on_load_save: gSaveContext.fileNum = %i", gSaveContext.fileNum);
-    REPY_PopInterpreter();
+    REPY_FN_SET("controller", sPictoLoadSaveController);
+    REPY_FN_SET_U32("saveslot", gSaveContext.fileNum);
+
+    // Copying data into mod memory, but only if the image exists.
+    REPY_FN_IF_CACHE(has_slot_img, "controller.has_slot_img(saveslot)") {
+        REPY_FN_EVAL_CACHE(load_slot_img, "controller.get_slot_img(saveslot)", slot_img);
+        REPY_FN_DEFER_RELEASE(slot_img); // Make sure the `slot_img` handle is cleaned up with the scope.
+        
+        // `buffer` is any Python type that implements the Python buffer interface. `bytes` is one such type.
+        REPY_MemcpyFromBuffer(inGameColorPhotoBuffer, sizeof(inGameColorPhotoBuffer), false, slot_img);
+        viewColorPhotoAfterSave = true;
+
+    } 
+
+    REPY_FN_CLEANUP;
 }
 
 RECOMP_CALLBACK("*", recomp_on_owl_save) void on_recomp_on_owl_save() {
     REPY_PushInterpreter(REPY_MAIN_INTERPRETER);
     _update_savefile_location();
-    
-    REPY_CallAttrCStr(sPictoLoadSaveController, "on_game_owlsave", REPY_CreateTuple_SUH(1, REPY_CreateS32_SUH(gSaveContext.fileNum)), REPY_NO_OBJECT);
+
+    if (viewColorPhotoAfterSave) {
+        REPY_Handle img_data = REPY_MemcpyToBytes(inGameColorPhotoBuffer, sizeof(inGameColorPhotoBuffer), false);
+        REPY_CallAttrCStr(sPictoLoadSaveController, "set_slot_img", REPY_CreateTuple_SUH(2, REPY_CreateS32_SUH(gSaveContext.fileNum), img_data), REPY_NO_OBJECT);
+        REPY_Release(img_data);
+    }
+
     REPY_PopInterpreter();
 }
 
@@ -121,16 +134,20 @@ RECOMP_HOOK("Lib_MemCpy") void on_recomp_autosave() {
     REPY_PushInterpreter(REPY_MAIN_INTERPRETER);
     _update_savefile_location();
     
-    REPY_CallAttrCStr(sPictoLoadSaveController, "on_game_owlsave", REPY_CreateTuple_SUH(1, REPY_CreateS32_SUH(gSaveContext.fileNum)), REPY_NO_OBJECT);
-    REPY_PopInterpreter();
+    if (viewColorPhotoAfterSave) {
+        REPY_Handle img_data = REPY_MemcpyToBytes(inGameColorPhotoBuffer, sizeof(inGameColorPhotoBuffer), false);
+        REPY_CallAttrCStr(sPictoLoadSaveController, "set_slot_img", REPY_CreateTuple_SUH(2, REPY_CreateS32_SUH(gSaveContext.fileNum), img_data), REPY_NO_OBJECT);
+        REPY_Release(img_data);
+    }
 
+    REPY_PopInterpreter();
 }
 
 RECOMP_HOOK_RETURN("Sram_SaveEndOfCycle") void on_Sram_SaveEndOfCycle() {
     REPY_PushInterpreter(REPY_MAIN_INTERPRETER);
     _update_savefile_location();
     
-    REPY_CallAttrCStr(sPictoLoadSaveController, "on_game_sotsave", REPY_CreateTuple_SUH(1, REPY_CreateS32_SUH(gSaveContext.fileNum)), REPY_NO_OBJECT);
+    REPY_CallAttrCStr(sPictoLoadSaveController, "del_slot_img", REPY_CreateTuple_SUH(1, REPY_CreateS32_SUH(gSaveContext.fileNum)), REPY_NO_OBJECT);
     REPY_PopInterpreter();
 }
 
