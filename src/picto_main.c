@@ -19,23 +19,14 @@
 
 #include "picto_export_png.h"
 #include "picto_display_color.h"
+#include "picto_save_system.h"
 
+#include "picto_main.h"
 /***********************************************************************
 
 	Pictobox Photo Mod
 
 ***********************************************************************/
-
-// Pictobox Photo Display
-typedef enum {
-    /* 0 */ PICTO_BOX_STATE_OFF,         // Not using the pictograph
-    /* 1 */ PICTO_BOX_STATE_LENS,        // Looking through the lens of the pictograph
-    /* 2 */ PICTO_BOX_STATE_SETUP_PHOTO, // Looking at the photo currently taken
-    /* 3 */ PICTO_BOX_STATE_PHOTO
-} PictoBoxState;
-
-// sPictoState is a global variable in the game code that indicates the pictobox state
-extern s16 sPictoState;
 
 // For displaying colored photos in-game
 u16 inGameColorPhotoBuffer[PICTO_PHOTO_SIZE];   // Buffer that loads RGBA16 data from prerender frame
@@ -112,6 +103,8 @@ RECOMP_HOOK_RETURN("Interface_UpdateButtonsPart1") void return_Interface_UpdateB
         if (viewColorPhotoBeforeSave == 1 && sPictoState == PICTO_BOX_STATE_OFF) {
             viewColorPhotoBeforeSave = false;
             viewColorPhotoAfterSave = true;
+
+            loadsave_set_color_img(gSaveContext.fileNum, inGameColorPhotoBuffer, sizeof(inGameColorPhotoBuffer));
         }
 
         // Viewing saved photo
@@ -119,11 +112,16 @@ RECOMP_HOOK_RETURN("Interface_UpdateButtonsPart1") void return_Interface_UpdateB
         if (viewColorPhotoAfterSave == 1 && sPictoState == PICTO_BOX_STATE_LENS) {
             viewColorPhotoBeforeSave = false;
             viewColorPhotoAfterSave = false;
+
+            loadsave_get_color_img(gSaveContext.fileNum, inGameColorPhotoBuffer, sizeof(inGameColorPhotoBuffer));
+            
         }
         // Player decides to keep the photo
         if (viewColorPhotoAfterSave == 1 && sPictoState == PICTO_BOX_STATE_OFF) {
             viewColorPhotoBeforeSave = false;
             viewColorPhotoAfterSave = true;
+            
+            loadsave_get_color_img(gSaveContext.fileNum, inGameColorPhotoBuffer, sizeof(inGameColorPhotoBuffer));
         }
     }
 }

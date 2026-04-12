@@ -74,7 +74,8 @@ data_reference_syms_files = [ "Zelda64RecompSyms/mm.us.rev1.datasyms.toml", "Zel
 additional_files = [ 
 	"thumb.png",
 	"src/picto_png.py",
-	"src/picto_export.py"
+	"src/picto_export.py",
+	"src/picto_save_file.py"
 ]
 
 [[manifest.config_options]]
