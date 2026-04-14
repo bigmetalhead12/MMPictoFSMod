@@ -11,6 +11,10 @@
 #include "picto_save_system.h"
 #include "picto_main.h"
 
+#include "z64save.h"
+#include "sys_flashrom.h"
+#include "overlays/gamestates/ovl_file_choose/z_file_select.h"
+
 /***********************************************************************
 
 	Load/Save handling for modified images.
@@ -31,51 +35,10 @@ REPY_ON_POST_INIT void init_loadsave_controller() {
 
     REPY_FN_CLEANUP;
 }
-// In-Memory Handling:
-// Since we're gonna have to copy the image into the Python interpreter for
-// writing the save file anyway, we may as well store the image saved in-memory
-// There too. That's one less copy operation, and it conserves mod memory.
-bool loadsave_get_color_img(u32 saveslot, u16* data, size_t size) {
-    REPY_FN_SETUP;
-    REPY_FN_SET("controller", sPictoLoadSaveController);
-    REPY_FN_SET_U32("saveslot", saveslot);
-
-    // Copying data into mod memory, but only if the image exists.
-    REPY_FN_IF_CACHE(has_slot_img, "controller.has_slot_img(saveslot)") {
-        REPY_FN_EVAL_CACHE(load_slot_img, "controller.get_slot_img(saveslot)", slot_img);
-        REPY_FN_DEFER_RELEASE(slot_img); // Make sure the `slot_img` handle is cleaned up with the scope.
-        
-        // `buffer` is any Python type that implements the Python buffer interface. `bytes` is one such type.
-        REPY_MemcpyFromBuffer(data, size, false, slot_img);
-
-        REPY_FN_RETURN(bool, true);
-    } 
-
-    REPY_FN_RETURN(bool, false);
-}
-
-
-void loadsave_set_color_img(u32 saveslot, u16* data, size_t size) {
-    REPY_FN_SETUP;
-    REPY_FN_SET("controller", sPictoLoadSaveController);
-    REPY_FN_SET_U32("saveslot", saveslot);
-
-    // This is also acceptable syntax for a deferred release.
-    REPY_Handle slot_img = REPY_FN_DEFER_RELEASE(REPY_MemcpyToBytes(data, size, false));
-    REPY_FN_SET("slot_img", slot_img);
-
-    REPY_FN_EXEC_CACHE(set_slot_img,
-        "controller.set_slot_img(saveslot, slot_img)"
-    );
-
-    REPY_FN_CLEANUP;
-}
-
 
 // Savefile handling:
 static void _update_savefile_location() {
     REPY_PushInterpreter(REPY_MAIN_INTERPRETER);
-
     unsigned char* save_path = recomp_get_save_file_path();
 
     // Calling a member function of the object.
@@ -94,8 +57,6 @@ static void _update_savefile_location() {
 RECOMP_CALLBACK("*", recomp_on_load_save) void on_recomp_on_load_save() {
     REPY_FN_SETUP;
     _update_savefile_location();
-    
-
     REPY_FN_SET("controller", sPictoLoadSaveController);
     REPY_FN_SET_U32("saveslot", gSaveContext.fileNum);
 
@@ -107,12 +68,12 @@ RECOMP_CALLBACK("*", recomp_on_load_save) void on_recomp_on_load_save() {
         // `buffer` is any Python type that implements the Python buffer interface. `bytes` is one such type.
         REPY_MemcpyFromBuffer(inGameColorPhotoBuffer, sizeof(inGameColorPhotoBuffer), false, slot_img);
         viewColorPhotoAfterSave = true;
-
     } 
 
     REPY_FN_CLEANUP;
 }
 
+// Since we already have a controller object, we'll just call its methods directly since a full scope isn't necessary.
 RECOMP_CALLBACK("*", recomp_on_owl_save) void on_recomp_on_owl_save() {
     REPY_PushInterpreter(REPY_MAIN_INTERPRETER);
     _update_savefile_location();
@@ -152,5 +113,19 @@ RECOMP_HOOK_RETURN("Sram_SaveEndOfCycle") void on_Sram_SaveEndOfCycle() {
 }
 
 // Need to add hooks for these as well.
-// void Sram_EraseSave(struct FileSelectState* fileSelect2, SramContext* sramCtx, s32 fileNum);
-// void Sram_CopySave(struct FileSelectState* fileSelect2, SramContext* sramCtx);
+RECOMP_HOOK("Sram_EraseSave") void pre_Sram_EraseSave(FileSelectState* fileSelect2, SramContext* sramCtx, s32 fileNum) {
+    REPY_PushInterpreter(REPY_MAIN_INTERPRETER);
+    _update_savefile_location();
+    
+    REPY_CallAttrCStr(sPictoLoadSaveController, "del_slot_img", REPY_CreateTuple_SUH(1, REPY_CreateS32_SUH(fileNum)), REPY_NO_OBJECT);
+    REPY_PopInterpreter();
+}
+
+RECOMP_HOOK("Sram_CopySave") void pre_Sram_CopySave(FileSelectState* fileSelect2, SramContext* sramCtx) {
+    REPY_PushInterpreter(REPY_MAIN_INTERPRETER);
+    _update_savefile_location();
+    
+    REPY_CallAttrCStr(sPictoLoadSaveController, "copy_slot_img", 
+        REPY_CreateTuple_SUH(2, REPY_CreateS16_SUH(fileSelect2->selectedFileIndex), REPY_CreateS16_SUH(fileSelect2->copyDestFileIndex)), REPY_NO_OBJECT);
+    REPY_PopInterpreter();
+}

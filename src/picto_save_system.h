@@ -1,3 +1,6 @@
+#ifndef __PICTO_SAVE_SYSTEM__
+#define __PICTO_SAVE_SYSTEM__
+
 //-----------------------------------------------------------------------------
 //
 // $ Author: Bigmetalhead12, LT_Schmiddy
@@ -19,3 +22,4 @@
 	Load/Save handling for modified images.
 
 ***********************************************************************/
+#endif

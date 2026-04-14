@@ -8,7 +8,7 @@ Pictobox PNG Export Mod (using LT_Schmiddy's REPY)
 API Source: https://github.com/LT-Schmiddy/zelda64recomp-python-extlibs-mod
 """
 
-import os
+import os, shutil
 from pathlib import Path
 
 # Use this as the file extension for saved images.
@@ -60,7 +60,11 @@ class PictoLoadSaveController:
         fpath = self._get_picto_save_path(key)
         if fpath.exists():
             os.remove(fpath)
-
-        
-        
     
+    def copy_slot_img(self, src_slot: int, dst_slot: int):
+        src_key = self._get_saveslot_key(src_slot)
+        src_fpath = self._get_picto_save_path(src_key)
+        if src_fpath.exists():
+            dst_key = self._get_saveslot_key(dst_slot)
+            dst_fpath = self._get_picto_save_path(dst_key)
+            shutil.copy(src_fpath, dst_fpath)
