@@ -16,18 +16,25 @@ To run this mod, download the [REPY](https://thunderstore.io/c/zelda-64-recompil
 
 # Save Location
 To locate the directory of the saved photos in your filesystem:
-1. Open the mod menu
-2. Click "Open Mods Folder"
-3. Go to the directory's parent directory
-4. Go to the "mod_data" directory
-5. Locate "MM_PictoPhotos"
+1. Open the mod menu in MM Recomp
+2. In the mod menu, click 'Open Mods Folder'
+3. Go to the parent directory
+4. Go to the 'mod_data' directory
+5. Go to the 'MM_PictoPhotos' directory
 
-All photos are saved in the directory.
+All photos are saved in this directory.
 
 # Toggleable Features
-This mod gives you control over how to save the pictobox's photo. In the configuration option of the mod, you can select one of two options:
+This mod gives you control over how to save the pictobox's photo.
+
+For save options, you have two options:
 * **Automatic** - Any photo taken with the pictobox, even if it is not saved in the game, is exported into the filesystem directory.
 * **Selective** - Only photos that are saved in the game are exported into the filesystem directory.
+
+For photo options, you have three options:
+* **Original** - The photo is saved in grayscale with the pictobox resolution (160 x 112)
+* **Color** - The photo is saved in color with the N64 resolution (320 x 240)
+* **Both** - Both types of photos are saved
 
 # Mod Template
 This mod was created using [Wiseguy's MMRecompModTemplate](https://github.com/Zelda64Recomp/MMRecompModTemplate).
@@ -36,7 +43,8 @@ If you are new to MM Recomp Modding, it is crucial you understand how to work wi
 
 # Acknowledgement
 - To **LT_Schmiddy** for the Python REPY tool and providing coding help
-- To **ThatHypedPerson** and **Celeste** for providing coding help
+- To **ThatHypedPerson** for implementing a method for saving colored photos
+- To **Celeste** for providing coding help
 
 # Feedback
 If you notice any mistakes or omissions in the documentation, please leave a comment to report the issues. Thanks! 👍

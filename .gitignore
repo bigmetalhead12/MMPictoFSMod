@@ -14,5 +14,7 @@ downloads/
 binaries/
 test_env/
 .vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
 __pycache__/**
 *.pyc
