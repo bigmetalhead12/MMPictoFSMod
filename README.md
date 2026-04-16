@@ -27,7 +27,11 @@ All photos are saved in this directory.
 # Toggleable Features
 This mod gives you control over how to save the pictobox's photo.
 
-For save options, you have two options:
+For in-game display options, you have two options:
+* **Original** - Photos are shown as their original grayscale version in the game.
+* **Color** - Photos are shown in color in the game.
+
+For export options, you have two options:
 * **Automatic** - Any photo taken with the pictobox, even if it is not saved in the game, is exported into the filesystem directory.
 * **Selective** - Only photos that are saved in the game are exported into the filesystem directory.
 
@@ -42,7 +46,7 @@ This mod was created using [Wiseguy's MMRecompModTemplate](https://github.com/Ze
 If you are new to MM Recomp Modding, it is crucial you understand how to work with this template before doing anything else. If you are able to build an NRM from this template on your machine, you are ready to mod the game.
 
 # Acknowledgement
-- To **LT_Schmiddy** for the Python REPY tool and providing coding help
+- To **LT_Schmiddy** for the Python REPY tool and implementing a persisting save for color photos in save file
 - To **ThatHypedPerson** for implementing a method for saving colored photos
 - To **Celeste** for providing coding help
 
