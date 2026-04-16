@@ -31,7 +31,7 @@ For in-game display options, you have two options:
 * **Original** - Photos are shown as their original grayscale version in the game.
 * **Color** - Photos are shown in color in the game.
 
-For save options, you have two options:
+For export options, you have two options:
 * **Automatic** - Any photo taken with the pictobox, even if it is not saved in the game, is exported into the filesystem directory.
 * **Selective** - Only photos that are saved in the game are exported into the filesystem directory.
 
