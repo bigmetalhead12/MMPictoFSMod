@@ -40,7 +40,7 @@ void export_photo_to_png(void* grayImgData, void* colorImgData) {
     REPY_FN_SET("mod_folder_path", folder_path_handle);
 
     // If the Color Option is set to "Original" or "Both"
-    if (recomp_get_config_u32("save_type") == 0 || recomp_get_config_u32("save_type") == 2) {
+    if (recomp_get_config_u32("export_type") == 0 || recomp_get_config_u32("export_type") == 2) {
         // Copy pictobox photo data into Python object
         REPY_Handle photo_handle = REPY_MemcpyToBytes(grayImgData, PICTO_PHOTO_SIZE, false);
         REPY_FN_SET("pictobox_photo", photo_handle);
@@ -56,7 +56,7 @@ void export_photo_to_png(void* grayImgData, void* colorImgData) {
     }
 
     // If the Color Option is set to "Color" or "Both"
-    if (recomp_get_config_u32("save_type") == 1 || recomp_get_config_u32("save_type") == 2) {
+    if (recomp_get_config_u32("export_type") == 1 || recomp_get_config_u32("export_type") == 2) {
         // Copy prerender data into Python object
         REPY_Handle photo_handle = REPY_MemcpyToBytes(colorImgData, SCREEN_WIDTH * SCREEN_HEIGHT * 2, false); // x2 as the image is 16 bit rather than 8 bit
         REPY_FN_SET("pictobox_photo", photo_handle);

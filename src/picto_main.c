@@ -19,27 +19,19 @@
 
 #include "picto_export_png.h"
 #include "picto_display_color.h"
+#include "picto_save_system.h"
 
+#include "picto_main.h"
 /***********************************************************************
 
 	Pictobox Photo Mod
 
 ***********************************************************************/
 
-// Pictobox Photo Display
-typedef enum {
-    /* 0 */ PICTO_BOX_STATE_OFF,         // Not using the pictograph
-    /* 1 */ PICTO_BOX_STATE_LENS,        // Looking through the lens of the pictograph
-    /* 2 */ PICTO_BOX_STATE_SETUP_PHOTO, // Looking at the photo currently taken
-    /* 3 */ PICTO_BOX_STATE_PHOTO
-} PictoBoxState;
-
-// sPictoState is a global variable in the game code that indicates the pictobox state
-extern s16 sPictoState;
-
 // For displaying colored photos in-game
 u16 inGameColorPhotoBuffer[PICTO_PHOTO_SIZE];   // Buffer that loads RGBA16 data from prerender frame
-bool inGameColorPhotoReady = false;             // flag that indicates if inGameColorPhotoBuffer is filled
+bool viewColorPhotoBeforeSave = false;          // Flag indicates if inGameColorPhotoBuffer img should be viewed before save
+bool viewColorPhotoAfterSave = false;           // Flag indicates if inGameColorPhotoBuffer img should be viewed after save
 s16 savedPictoState;                            // mod code's temp variable for sPictoState copy
 
 // Game's buffer containing the pictobox photo's original I8 format
@@ -74,19 +66,18 @@ RECOMP_HOOK("Play_TakePictoPhoto") void on_Play_TakePictoPhoto(PreRender* preren
 
 // Function that captures game frame into photo
 RECOMP_HOOK_RETURN("Play_TakePictoPhoto") void return_Play_TakePictoPhoto() {   
-    recomp_printf("file no: %d\n", gSaveContext.fileNum);
     // For displaying colored photo, save the prerender data into a global variable
     if (recomp_get_config_u32("display_mode") == 1) {
-        preRender_to_buffer(pictoPrerender, inGameColorPhotoBuffer, &inGameColorPhotoReady);
+        preRender_to_buffer(pictoPrerender, inGameColorPhotoBuffer, &viewColorPhotoBeforeSave);
     }
     
     // Run this code when "save mode" is set to "automatic" (0)
-    if (recomp_get_config_u32("save_mode") == 0) {
+    if (recomp_get_config_u32("export_mode") == 0) {
         export_photo_to_png(gHiBuffer.pictoPhotoI8, pictoPrerender->fbufSave);
     }
 
     // Run this code when "save mode" is set to "selective" (1)
-    else if (recomp_get_config_u32("save_mode") == 1) {
+    else if (recomp_get_config_u32("export_mode") == 1) {
         // Save the prerender data into a global variable
         for (s32 i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; i++) {
             colorPhotoBuffer[i] = pictoPrerender->fbufSave[i];
@@ -102,13 +93,28 @@ Interface_UpdateButtonsPart1
 RECOMP_HOOK_RETURN("Interface_UpdateButtonsPart1") void return_Interface_UpdateButtonsPart1(PlayState* play) {
     // Exit the "Keep this picture?" prompt properly after taking a photo 
     if (recomp_get_config_u32("display_mode") == 1) {
+        // Right after photo was taken
         // Photo was taken but player does not keep the photo
-        if (inGameColorPhotoReady == 1 && sPictoState == PICTO_BOX_STATE_LENS) {
-            inGameColorPhotoReady = false;
+        if (viewColorPhotoBeforeSave == 1 && sPictoState == PICTO_BOX_STATE_LENS) {
+            viewColorPhotoBeforeSave = false;
+            viewColorPhotoAfterSave = false;
         }
         // Photo was taken and player decides to save the photo
-        if (inGameColorPhotoReady == 1 && sPictoState == PICTO_BOX_STATE_OFF) {
-            inGameColorPhotoReady = false;
+        if (viewColorPhotoBeforeSave == 1 && sPictoState == PICTO_BOX_STATE_OFF) {
+            viewColorPhotoBeforeSave = false;
+            viewColorPhotoAfterSave = true;
+        }
+
+        // Viewing saved photo
+        // Player decides to not keep the photo
+        if (viewColorPhotoAfterSave == 1 && sPictoState == PICTO_BOX_STATE_LENS) {
+            viewColorPhotoBeforeSave = false;
+            viewColorPhotoAfterSave = false;
+        }
+        // Player decides to keep the photo
+        if (viewColorPhotoAfterSave == 1 && sPictoState == PICTO_BOX_STATE_OFF) {
+            viewColorPhotoBeforeSave = false;
+            viewColorPhotoAfterSave = true;
         }
     }
 }
@@ -121,12 +127,14 @@ Interface_Draw
 // Run before "Interface_Draw" draws pictobox photo's "Keep this picture?" prompt
 RECOMP_HOOK("Interface_Draw") void on_Interface_Draw(PlayState* play) {
     // Exit this function if inGameColorPhotoBuffer is not filled or if photo is not taken yet
-    if (inGameColorPhotoReady == 0 || sPictoState < PICTO_BOX_STATE_SETUP_PHOTO) {
+    if ((viewColorPhotoBeforeSave == 0 && viewColorPhotoAfterSave == 0) || sPictoState < PICTO_BOX_STATE_SETUP_PHOTO) {
         return;
     }
     // If inGameColorPhotoBuffer is filled, draw "Keep this picture?" and colored photo to game
     else {
-        draw_colored_photos(play, &savedPictoState, inGameColorPhotoBuffer);
+        if (viewColorPhotoBeforeSave == 1 || viewColorPhotoAfterSave == 1) {
+            draw_colored_photos(play, &savedPictoState, inGameColorPhotoBuffer);
+        }
     }
 }
 
@@ -134,13 +142,14 @@ RECOMP_HOOK("Interface_Draw") void on_Interface_Draw(PlayState* play) {
 RECOMP_HOOK_RETURN("Interface_Draw") void return_Interface_Draw(PlayState* play) {
     if (recomp_get_config_u32("display_mode") == 1) {
         // Exit this function if inGameColorPhotoBuffer is not filled
-        if (inGameColorPhotoReady == 0) {
+        if (viewColorPhotoBeforeSave == 0 && viewColorPhotoAfterSave == 0) {
             return;
         }
 
-        // Restore the sPictoState value after Interface_Draw function is run
+        // If inGameColorPhotoBuffer is filled, update sPictoState again
         if (savedPictoState >= PICTO_BOX_STATE_SETUP_PHOTO) {
             sPictoState = savedPictoState;
+            savedPictoState = PICTO_BOX_STATE_OFF;      // Had to manually set this to off to make the draw function to work at the proper time
         }
     }
 }
@@ -152,7 +161,7 @@ Play_CompressI8ToI5
 // Compresses I8 photo image to I5 after deciding to save pictobox photo in game
 RECOMP_HOOK("Play_CompressI8ToI5") void on_Play_CompressI8ToI5(void* srcI8, void* destI5, size_t size) {
     // Run this code when "save mode" is set to "selective" (1)
-    if (recomp_get_config_u32("save_mode")) {
+    if (recomp_get_config_u32("export_mode")) {
         // Export pictobox photo as PNG before I8 photo gets compressed
         export_photo_to_png(srcI8, colorPhotoBuffer);
     }

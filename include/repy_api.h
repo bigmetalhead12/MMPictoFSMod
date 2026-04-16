@@ -865,7 +865,7 @@ REPY_PopInterpreter() \
  */
 #define REPY_FN_RETURN(retType, retVal) \
 retType __repy_retVal = retVal; \
-REPY_DeferredCleanupHelper_Destroy(REPY_FN_AUTO_CLEANUP, 1); \
+REPY_DeferredCleanupHelper_Destroy(REPY_FN_AUTO_CLEANUP); \
 REPY_Release(REPY_FN_LOCAL_SCOPE); \
 REPY_PopInterpreter(); \
 return retVal 
