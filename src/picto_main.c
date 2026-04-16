@@ -126,6 +126,11 @@ Interface_Draw
 
 // Run before "Interface_Draw" draws pictobox photo's "Keep this picture?" prompt
 RECOMP_HOOK("Interface_Draw") void on_Interface_Draw(PlayState* play) {
+    // First, check if "display_mode" is still set to "color". If not, then exit this function.
+    if (recomp_get_config_u32("display_mode") == 0) {
+        return;
+    }
+
     // Exit this function if inGameColorPhotoBuffer is not filled or if photo is not taken yet
     if ((viewColorPhotoBeforeSave == 0 && viewColorPhotoAfterSave == 0) || sPictoState < PICTO_BOX_STATE_SETUP_PHOTO) {
         return;
