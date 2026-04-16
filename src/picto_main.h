@@ -1,8 +1,24 @@
 #ifndef __PICTO_MAIN__
 #define __PICTO_MAIN__
 
+//-----------------------------------------------------------------------------
+//
+// $ Author: Bigmetalhead12 $
+//
+// 2026
+//
+// Pictobox PNG Export Mod (using LT_Schmiddy's REPY)
+// API Source: https://github.com/LT-Schmiddy/zelda64recomp-python-extlibs-mod
+//-----------------------------------------------------------------------------
+
 #include "global.h"
 
+
+/***********************************************************************
+
+	Pictobox Photo Mod
+
+***********************************************************************/
 
 // Pictobox Photo Display
 typedef enum {
@@ -12,8 +28,10 @@ typedef enum {
     /* 3 */ PICTO_BOX_STATE_PHOTO
 } PictoBoxState;
 
+
 // sPictoState is a global variable in the game code that indicates the pictobox state
 extern s16 sPictoState;
+
 
 // For displaying colored photos in-game
 extern u16 inGameColorPhotoBuffer[PICTO_PHOTO_SIZE];   // Buffer that loads RGBA16 data from prerender frame

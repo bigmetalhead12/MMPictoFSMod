@@ -36,6 +36,7 @@ REPY_ON_POST_INIT void init_loadsave_controller() {
     REPY_FN_CLEANUP;
 }
 
+
 // Savefile handling:
 static void _update_savefile_location() {
     REPY_PushInterpreter(REPY_MAIN_INTERPRETER);
@@ -73,6 +74,7 @@ RECOMP_CALLBACK("*", recomp_on_load_save) void on_recomp_on_load_save() {
     REPY_FN_CLEANUP;
 }
 
+
 // Since we already have a controller object, we'll just call its methods directly since a full scope isn't necessary.
 RECOMP_CALLBACK("*", recomp_on_owl_save) void on_recomp_on_owl_save() {
     REPY_PushInterpreter(REPY_MAIN_INTERPRETER);
@@ -86,6 +88,7 @@ RECOMP_CALLBACK("*", recomp_on_owl_save) void on_recomp_on_owl_save() {
 
     REPY_PopInterpreter();
 }
+
 
 #define SAVE_TYPE_AUTOSAVE 2
 RECOMP_HOOK("Lib_MemCpy") void on_recomp_autosave() {
@@ -104,6 +107,7 @@ RECOMP_HOOK("Lib_MemCpy") void on_recomp_autosave() {
     REPY_PopInterpreter();
 }
 
+
 RECOMP_HOOK_RETURN("Sram_SaveEndOfCycle") void on_Sram_SaveEndOfCycle() {
     REPY_PushInterpreter(REPY_MAIN_INTERPRETER);
     _update_savefile_location();
@@ -111,6 +115,7 @@ RECOMP_HOOK_RETURN("Sram_SaveEndOfCycle") void on_Sram_SaveEndOfCycle() {
     REPY_CallAttrCStr(sPictoLoadSaveController, "del_slot_img", REPY_CreateTuple_SUH(1, REPY_CreateS32_SUH(gSaveContext.fileNum)), REPY_NO_OBJECT);
     REPY_PopInterpreter();
 }
+
 
 // Need to add hooks for these as well.
 RECOMP_HOOK("Sram_EraseSave") void pre_Sram_EraseSave(FileSelectState* fileSelect2, SramContext* sramCtx, s32 fileNum) {
@@ -120,6 +125,7 @@ RECOMP_HOOK("Sram_EraseSave") void pre_Sram_EraseSave(FileSelectState* fileSelec
     REPY_CallAttrCStr(sPictoLoadSaveController, "del_slot_img", REPY_CreateTuple_SUH(1, REPY_CreateS32_SUH(fileNum)), REPY_NO_OBJECT);
     REPY_PopInterpreter();
 }
+
 
 RECOMP_HOOK("Sram_CopySave") void pre_Sram_CopySave(FileSelectState* fileSelect2, SramContext* sramCtx) {
     REPY_PushInterpreter(REPY_MAIN_INTERPRETER);
